@@ -1,7 +1,30 @@
 const express = require("express");
+const mongoose = require("mongoose");
+
+const usersRoutes = require("./routes/users-routes");
+const cartRoutes = require("./routes/cart-routes");
+const storeRoutes = require("./routes/store-routes");
+const ordersRoutes = require("./routes/orders-routes");
 
 const app = express();
 
-app.listen(5000,()=>{
-    console.log("Backend Running at 5000 port");
-});
+app.use("/api/users", usersRoutes);
+app.use("/api/store",storeRoutes);
+app.use("/api/cart",cartRoutes);
+app.use("/api/orders",ordersRoutes);
+
+mongoose
+  .connect(
+    "mongodb+srv://Divyang:Divyang%407725@hungryhive.ghx0p.mongodb.net/" 
+  )
+  .then(() => {
+    console.log("MongoDB Database connected Successfully.");
+    app.listen(5000,()=>{
+        console.log("Backend Running at 5000 port");
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+
