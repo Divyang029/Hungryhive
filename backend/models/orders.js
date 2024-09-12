@@ -11,7 +11,7 @@ const ordersSchema = new Schema({
         {
             item_name: { type: String, required: true},
             item_quantity: { type: Number, required: true},
-            item_catetory: { type: String, required: true}
+            item_category: { type: String, required: true}
         }
     ],
     total_amount: { type: Number},
@@ -19,7 +19,7 @@ const ordersSchema = new Schema({
 
 });
 
-userSchema.plugin(uniqueValidator);
+ordersSchema.plugin(uniqueValidator);
 
 module.exports = mongoose.model('Orders', ordersSchema);
 

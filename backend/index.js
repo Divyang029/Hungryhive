@@ -8,10 +8,16 @@ const ordersRoutes = require("./routes/orders-routes");
 
 const app = express();
 
+app.use(express.json());
 app.use("/api/users", usersRoutes);
 app.use("/api/store",storeRoutes);
 app.use("/api/cart",cartRoutes);
 app.use("/api/orders",ordersRoutes);
+
+app.use((req,res)=>{
+  res.send("API not found");
+});
+
 
 mongoose
   .connect(
