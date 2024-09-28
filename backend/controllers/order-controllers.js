@@ -9,7 +9,7 @@ const getAllOrders = async (req,res,next)=>{
     let orders;
     if(!userid){
         try {
-            orders = await Order.find({});
+            orders = await Order.find({}).lean();
         } catch (err) {
             const error = new HttpError(
             'Fetching ordre failed, please try again later.',
@@ -17,11 +17,11 @@ const getAllOrders = async (req,res,next)=>{
         );
         return next(error);
     }
-        res.json({orders: orders.map(order => order.toObject({ getters: true }))});
-    }
+        res.json({orders});
+}
     else{
         try {
-            orders = await Order.find({user: userid});
+            orders = await Order.find({user: userid},'-user').lean();
         } catch (err) {
             const error = new HttpError(
                 'Fetching ordre failed, please try again later.',
@@ -29,7 +29,8 @@ const getAllOrders = async (req,res,next)=>{
             );
             return next(error);
         }
-        res.json({orders: orders.toObject()});
+        
+        res.json({orders});
     }
     
 }
