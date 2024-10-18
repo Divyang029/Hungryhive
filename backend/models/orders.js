@@ -14,6 +14,8 @@ const ordersSchema = new Schema({
             item_category: { type: String, required: true}
         }
     ],
+    orderedAt:{type: Date, default:Date.now},
+    address:{ type: String, required: true},
     total_amount: { type: Number},
     // payment_type: { type: String},
 
@@ -22,5 +24,3 @@ const ordersSchema = new Schema({
 ordersSchema.plugin(uniqueValidator);
 
 module.exports = mongoose.model('Orders', ordersSchema);
-
-

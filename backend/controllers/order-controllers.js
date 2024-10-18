@@ -58,11 +58,13 @@ const addNewOrder =  async (req,res,next) =>{
         );
     }
 
-    const { userid,storeid,orders } = req.body;
+    const { userid,storeid,orders,address,total_amount } = req.body;
     const createdOrder = new Order({
         user: new mongoose.Types.ObjectId(userid),
         store: new mongoose.Types.ObjectId(storeid),
-        orders: orders
+        orders: orders,
+        address: address,
+        total_amount :total_amount,
     });
     try {
         await createdOrder.save();

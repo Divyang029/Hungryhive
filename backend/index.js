@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require('cors');
 
 const usersRoutes = require("./routes/users-routes");
 const cartRoutes = require("./routes/cart-routes");
@@ -8,6 +9,7 @@ const ordersRoutes = require("./routes/orders-routes");
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use("/api/users", usersRoutes);
 app.use("/api/store",storeRoutes);
@@ -21,7 +23,7 @@ app.use((req,res)=>{
 
 mongoose
   .connect(
-    "mongodb+srv://Divyang:Divyang%407725@hungryhive.ghx0p.mongodb.net/" 
+    "mongodb+srv://Divyang:Divyang%407725@hungryhive.ghx0p.mongodb.net/Hungryhive?retryWrites=true&w=majority" 
   )
   .then(() => {
     console.log("MongoDB Database connected Successfully.");

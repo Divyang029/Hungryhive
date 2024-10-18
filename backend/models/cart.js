@@ -11,6 +11,7 @@ const cartSchema = new Schema({
             store: { type: mongoose.Types.ObjectId, required: true, ref: 'Store'},
             item_name: { type: String, required: true},
             item_quantity: { type: Number, required: true},
+            item_price: {type:Number,required: true},
             item_category: { type: String, required: true}
         }
     ],
@@ -20,5 +21,3 @@ const cartSchema = new Schema({
 cartSchema.plugin(uniqueValidator);
 
 module.exports = mongoose.model('Cart', cartSchema);
-
-

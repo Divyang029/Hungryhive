@@ -34,57 +34,6 @@ const getUsers = async (req, res, next) => {
   }
 };
 
-
-const signup = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log(errors.array());
-    return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422)
-    );
-  }
-  const { name, email, password } = req.body;
-
-  let existingUser;
-  try {
-    existingUser = await User.findOne({ email: email })
-  } catch (err) {
-    const error = new HttpError(
-      'Signing up failed, please try again later.',
-      500
-    );
-    return next(error);
-  }
-  
-  if (existingUser) {
-    const error = new HttpError(
-      'User exists already, please login instead.',
-      422
-    );
-    return next(error);
-  }
-  
-  const createdUser = new User({
-    name,
-    email,
-    password,
-    isAdmin: false
-  });
-
-  try {
-    await createdUser.save();
-  } catch (err) {
-    const error = new HttpError(
-      'Signing up failed, please try again.',
-      500
-    );
-    return next(error);
-  }
-
-  res.status(201).json({user: createdUser.toObject({ getters: true })});
-};
-
-
 const login = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -108,9 +57,69 @@ const login = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({message: 'Logged in!'});
+  res.json({message: 'Logged in!',userid: existingUser._id});
+};
+
+const checkuser = async (req,res) => {
+  const { email } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(200).json({
+        exists: true,
+        userId: existingUser._id
+      });
+    } else {
+      return res.status(200).json({
+        exists: false
+      });
+    }
+  } catch (error) {
+    console.error('Error checking user:', error);
+    return res.status(500).json({
+      message: 'Error checking user'
+    });
+  }
+};
+
+
+const createUser = async (req, res) => {
+  const { email, name} = req.body;
+
+  try {
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(201).json({
+        userId: existingUser._id,
+        message: 'User Found successfully'
+      });
+    }
+
+    // Create a new user
+    const newUser = new User({
+      name: name || 'User', // Default to 'Unknown' if no name is provided
+      email,
+    });
+
+    // Save the user in the database
+    await newUser.save();
+
+    return res.status(201).json({
+      userId: newUser._id,
+      message: 'User created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return res.status(500).json({
+      message: 'Error creating user'
+    });
+  }
 };
 
 exports.getUsers = getUsers;
-exports.signup = signup;
 exports.login = login;
+
+exports.createUser= createUser;

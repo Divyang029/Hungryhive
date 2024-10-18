@@ -30,7 +30,8 @@ const getAllCart = async (req,res,next)=>{
             );
             return next(error);
         }
-        res.json({carts: carts.toObject()});
+        res.json({ carts: carts.map(cart => cart.toObject({ getters: true }))});
+
     }
     
 }

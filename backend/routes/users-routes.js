@@ -8,22 +8,11 @@ const router = express.Router();
 //Get user or users
 router.get('/:userid?', usersController.getUsers);
 
-//For signup
-router.post(
-  '/signup',
-  [
-    check('name')
-      .not()
-      .isEmpty(),
-    check('email')
-      .normalizeEmail() // Test@test.com => test@test.com
-      .isEmail(),
-    check('password').isLength({ min: 6 })
-  ],
-  usersController.signup
-);
 
 //For login
-router.post('/login', usersController.login);
+router.post('/login', usersController.login);     
+
+// router.post('/check-user',usersController.checkuser);
+router.post('/create-user',usersController.createUser);
 
 module.exports = router;
