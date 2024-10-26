@@ -1,42 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import './ProfilePage.css'; // Custom CSS for styling
 import { useSelector,useDispatch } from 'react-redux';
-import { setlogout } from '../../redux-toolkit/userSlice';
+import { setlogout,setuser } from '../../redux-toolkit/userSlice';
+import axios from 'axios';
 
 const ProfilePage = () => {
   const isloggedin = useSelector((state) => state.user.isLoggedin);
+  const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
+
   const [profile, setProfile] = useState({
-    name: '',
-    email: '',
-    phone_number: '',
+    name: user.name,
+    email: user.email,
+    phone_number: user.phone_number || "",
     address: {
-      house_no: '',
-      street: '',
-      area: '',
-      pincode: '',
-      city: '',
-      state: '',
-      country: '',
+      house_no: (user.address && user.address.house_no) || "", 
+      street: (user.address && user.address.street) || "",
+      area: (user.address && user.address.area) || "",
+      pincode: (user.address && user.address.pincode) || "",
+      city: (user.address && user.address.city) || "",
+      state: (user.address && user.address.state) || "",
+      country: (user.address && user.address.country) || "",
     },
   });
-
-  const getProfileinfo = () => {
-    setProfile({
-      name: '',
-      email: '',
-      phone_number: '',
-      address: {
-        house_no: '',
-        street: '',
-        area: '',
-        pincode: '',
-        city: '',
-        state: '',
-        country: '',
-      },
-    });
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,9 +37,26 @@ const ProfilePage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Profile data submitted:', profile);
+
+    try {
+      const response = await axios.put(`http://localhost:5000/api/users/update-user/${user._id}`, {
+        profile: profile,
+      });
+
+      if(response.data.user){
+        dispatch(setuser(response.data.user));
+        console.log(response.data.user);
+      }
+      else{
+        console.log(response.data.message);
+      }
+    } catch (err) {
+      console.error('Error updating cart:', err);
+    }
+
+    alert('Profile Updated Successfully.');
   };
 
   const handleLogout = () => {
@@ -94,7 +97,6 @@ const ProfilePage = () => {
                 name="email"
                 value={profile.email}
                 onChange={handleChange}
-                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
               />
             </div>
 
@@ -189,9 +191,6 @@ const ProfilePage = () => {
           </fieldset>
 
           <div className="button-row">
-            <button type="button" className="reset-button" onClick={getProfileinfo}>
-              Reset
-            </button>
             <button type="submit" className="save-button">
               Save
             </button>

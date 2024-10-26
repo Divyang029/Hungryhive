@@ -11,8 +11,8 @@ router.get('/:userid?', usersController.getUsers);
 
 //For login
 router.post('/login', usersController.login);     
-
-// router.post('/check-user',usersController.checkuser);
 router.post('/create-user',usersController.createUser);
+router.put('/update-user/:id',usersController.updateUser);
+router.post('/sendOTP',usersController.getOTP);
 
 module.exports = router;

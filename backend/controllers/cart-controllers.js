@@ -60,10 +60,11 @@ const addNewCart =  async (req,res,next) =>{
         );
     }
 
-    const { userid , items } = req.body;
+    const { userid , items, total_amount } = req.body;
     const createdCart = new Cart({
         user: new mongoose.Types.ObjectId(userid),
-        items: items
+        items: items,
+        total_amount: total_amount
     });
     try {
         await createdCart.save();

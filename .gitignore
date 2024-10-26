@@ -1,3 +1,4 @@
 /backend/node_modules/
+/backend/.env
 /frontend/hungryhivereact/node_modules/
 /frontend/hungryhivereact/src/services/firebaseConfig.js

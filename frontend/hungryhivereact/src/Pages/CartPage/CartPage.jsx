@@ -5,35 +5,31 @@ import {
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import { Add, Remove } from '@mui/icons-material';
 import axios from 'axios';
-
+import { useSelector,useDispatch } from 'react-redux';
 
 function CartPage({ isNavOpen }) {
-  const [cartItems, setCartItems] = useState([
-    { name: 'Burger', price: 120, quantity: 2, isVeg: false },
-    { name: 'Pizza', price: 300, quantity: 1, isVeg: true },
-    { name: 'Burger', price: 120, quantity: 2, isVeg: false },
-    { name: 'Pizza', price: 300, quantity: 1, isVeg: true },
-    { name: 'Burger', price: 120, quantity: 2, isVeg: false },
-    { name: 'Pizza', price: 300, quantity: 1, isVeg: true },
-    { name: 'Burger', price: 120, quantity: 2, isVeg: false },
-    { name: 'Pizza', price: 300, quantity: 1, isVeg: true },
-    { name: 'Burger', price: 120, quantity: 2, isVeg: false },
-    { name: 'Pizza', price: 300, quantity: 1, isVeg: true },
-    { name: 'Burger', price: 120, quantity: 2, isVeg: false },
-    { name: 'Pizza', price: 300, quantity: 1, isVeg: true },
-    { name: 'Burger', price: 120, quantity: 2, isVeg: false },
-    { name: 'Pizza', price: 300, quantity: 1, isVeg: true },
-    
-  ]);
+  const userRedux = useSelector((state) => state.user.user);
+  const isloggedin = useSelector((state) => state.user.isLoggedin);
 
 
   //fetch from databases
   const [fetchitem, setfetchitem] = useState({items: []});
+  const [storeInfo,setstoreInfo] = useState({area:" "});
   useEffect(() => {
     const fetchCart = async () => {
+      if(!isloggedin){
+        return;
+      }
       try {
-        const response = await axios.get('http://localhost:5000/api/cart/67114275d2b0d7fbd3add504');
-        setfetchitem(response.data.carts[0]);
+        const response = await axios.get(`http://localhost:5000/api/cart/${userRedux._id}`);
+        if (response.data.carts.length === 0) {
+          setfetchitem(null); // Set fetchitem to null if the cart is empty
+        }
+        else{
+          setfetchitem(response.data.carts[0]);
+          const storeresponse = await axios.get(`http://localhost:5000/api/store/${response.data.carts[0].items[0].store}`);
+          setstoreInfo(storeresponse.data.store);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -42,26 +38,38 @@ function CartPage({ isNavOpen }) {
   }, []);
 
   useEffect(() => {
-    console.log(fetchitem); // Log fetched cart details for debugging
-  }, [fetchitem]);
- 
-  const user = { name: 'John Doe', mobile: '9876543210', address: '1234, Food Street, City' };
+    console.log(fetchitem); 
+    console.log(storeInfo);
+  }, [fetchitem,storeInfo]);
 
-  // Persistent Store Info
-  const storeInfo = {
-    name: 'Hungry Hive Restaurant',
-    picture: 'https://via.placeholder.com/50', // Store picture URL
-    landmark: 'Near City Mall',
+  const createFullAddress = (address) => {
+    if (!address) return ""; 
+
+    const addressParts = [];
+
+    if (address?.house_no) addressParts.push(address.house_no);
+    if (address?.street) addressParts.push(address.street + " Street");
+    if (address?.area) addressParts.push(address.area);
+    if (address?.city) addressParts.push(address.city);
+    if (address?.state) addressParts.push(address.state);
+    if (address?.country) addressParts.push(address.country);
+    if (address?.pincode) addressParts.push(address.pincode);
+
+    return addressParts.join(', ') || ""; 
   };
+
+  const fullAddress = createFullAddress(userRedux?.address);
+
+  const user = { name: userRedux.name, mobile: userRedux.phone_number || "", address: fullAddress};
 
   const platformFees = 20; // Static example, can be dynamic
   const gst = 0.18; // 18% GST
   const deliveryCharges = 40; // Static example, can be dynamic
   const deliveryTip = 15; // Static example, can be dynamic
 
-  const totalBill = fetchitem.items.reduce((total, item) => total + item.item_price * item.item_quantity, 0);
+  var totalBill = fetchitem?.items.reduce((total, item) => total + item.item_price * item.item_quantity, 0);
   const gstAmount = totalBill * gst;
-  const finalTotal = totalBill + platformFees + gstAmount + deliveryCharges + deliveryTip;
+  var finalTotal = totalBill + platformFees + gstAmount + deliveryCharges + deliveryTip;
 
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [address, setAddress] = useState(user.address);
@@ -78,10 +86,14 @@ function CartPage({ isNavOpen }) {
   //updatecarts
   const updateCartInDB = async (updatedItems) => {
     try {
-      await axios.put("http://localhost:5000/api/cart/update/${fetchitem.id}", {
+        if(updatedItems.length==0){
+          await axios.delete(`http://localhost:5000/api/cart/delete/${fetchitem.id}`);
+        }
+        else{
+        await axios.put(`http://localhost:5000/api/cart/update/${fetchitem.id}`, {
         items: updatedItems,
-        totalAmount: finalTotal,
-      });
+        totalAmount: totalBill,
+        });} 
     } catch (err) {
       console.error('Error updating cart:', err);
     }
@@ -92,7 +104,9 @@ function CartPage({ isNavOpen }) {
   const increaseQuantity = (index) => {
     const updatedItems = {...fetchitem};
     updatedItems.items[index].item_quantity += 1;
+
     setfetchitem(updatedItems);
+
     updateCartInDB(updatedItems.items);
   };
 
@@ -118,13 +132,17 @@ function CartPage({ isNavOpen }) {
       orders: fetchitem.items,  // Cart items
       address: address,
       total_amount: finalTotal.toFixed(2),
+      currentStep: Math.floor(Math.random() * 4) + 1,
     };
 
     try {
       // Make the API call to add the new order
       const response = await axios.post('http://localhost:5000/api/orders/add', orderData);
       if (response.status === 201) {
+        alert('Order placed successfully');
+        axios.delete(`http://localhost:5000/api/cart/delete/${fetchitem.id}`);
         console.log('Order placed successfully', response.data);
+        setfetchitem(null);
         // Clear cart or redirect to confirmation page if needed
       }
     } catch (error) {
@@ -133,6 +151,8 @@ function CartPage({ isNavOpen }) {
   };
   
   return (
+    <>
+    {isloggedin ? (
     <Box
       sx={{
         py: 4,
@@ -145,6 +165,8 @@ function CartPage({ isNavOpen }) {
         width: isNavOpen ? 'calc(100% - 240px)' : '100%',
       }}
     >
+      {fetchitem?.items?.length?(
+      <>
       {/* Left section: Cart Items + Bill */}
       <Box
         sx={{
@@ -158,34 +180,23 @@ function CartPage({ isNavOpen }) {
         <Typography variant="h5" mb={2}>
           Cart Items <ShoppingCartOutlinedIcon />
         </Typography>
-
         <Paper elevation={2} sx={{ p: 2 }}>
           {/* Persistent Store Section */}
           <Box display="flex" alignItems="center" mb={2}>
-            <Avatar src={storeInfo.picture} sx={{ mr: 2, width: 50, height: 50 }} />
+            <Avatar src={storeInfo.store_image} sx={{ mr: 2, width: 50, height: 50 }} />
             <Box>
-              <Typography variant="h6">{storeInfo.name}</Typography>
+              <Typography variant="h6">{storeInfo.store_name}</Typography>
               <Typography variant="body2" color="textSecondary">
-                Landmark: {storeInfo.landmark}
+                Landmark: {storeInfo?.store_address?.area || 'No landmark available'}
               </Typography>
             </Box>
           </Box>
 
           {/* Scrollable Cart Items Section */}
-          <Box sx={{ maxHeight: '300px', overflowY: 'auto', mb: 2 }}>
+          <Box sx={{ maxHeight: '300px', overflowY: 'auto', mb: 2, '&::-webkit-scrollbar': { display: 'none' }}}>
             {fetchitem.items.map((item, index) => (
               <Box key={index} display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                {/* Veg/Non-Veg Logo */}
                 <Box display="flex" alignItems="center">
-                  <ButtonBase
-                    sx={{
-                      width: 14,
-                      height: 14,
-                      backgroundColor: item.isVeg ? 'green' : 'red',
-                      marginRight: '8px',
-                      borderRadius: 0,
-                    }}
-                  />
                   <Typography>{item.item_name}</Typography>
                 </Box>
 
@@ -232,7 +243,7 @@ function CartPage({ isNavOpen }) {
             <Typography variant="h6">Total Amount</Typography>
             <Typography variant="h6">₹{finalTotal.toFixed(2)}</Typography>
           </Box>
-        </Paper>
+        </Paper> 
       </Box>
 
       {/* Right section: User Info, Address, Payment */}
@@ -284,8 +295,30 @@ function CartPage({ isNavOpen }) {
           </Button>
         </Paper>
       </Box>
-    </Box>
+      </>):(
+        <Box
+        sx={{
+          flex: 1,
+          pr: { md: 4 },
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+        >
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{ display: 'flex', justifyContent: 'center' }} // Center horizontally
+          >
+            Your Cart is Empty
+          </Typography>
+        </Box>
+      )}
+    </Box> ) : (
+      <p style={{color:'red', justifyContent:'center',display: 'flex',fontSize:'1.5rem'}}>You have to Signin First !!</p>
+    )}
+    </>
   );
 }
 
-export default CartPage;
+export default CartPage;

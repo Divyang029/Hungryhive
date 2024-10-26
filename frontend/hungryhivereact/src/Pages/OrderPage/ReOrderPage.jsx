@@ -14,104 +14,23 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
+import { useSelector,useDispatch } from 'react-redux';
 
 function ReorderPage() {
   const [expandedOrder, setExpandedOrder] = useState(null);
-
-  // Sample past orders data
-  const pastOrders = [
-    {
-      id: 1,
-      store: 'Hungry Hive Pizza',
-      orderedAt: 'Sep 30, 2024',
-      items: [
-        { name: 'Pizza Margherita', quantity: 2, price: 500 },
-        { name: 'Garlic Bread', quantity: 1, price: 150 },
-      ],
-      total: 750,
-      status: 'Completed',
-      address: '123 Street, City Center',
-      deliveryTime: '45 minutes',
-      deliveryPerson: 'Rahul Sharma',
-    },
-    {
-      id: 2,
-      store: 'BBQ Express',
-      orderedAt: 'Sep 25, 2024',
-      items: [
-        { name: 'BBQ Chicken', quantity: 3, price: 900 },
-        { name: 'French Fries', quantity: 2, price: 300 },
-      ],
-      total: 1200,
-      status: 'Completed',
-      address: '456 Avenue, West End',
-      deliveryTime: '30 minutes',
-      deliveryPerson: 'Ankit Verma',
-    },
-    {
-        id: 3,
-        store: 'Sushi World',
-        orderedAt: 'Sep 20, 2024',
-        items: [
-          { name: 'California Roll', quantity: 5, price: 600 },
-          { name: 'Miso Soup', quantity: 3, price: 200 },
-        ],
-        total: 800,
-        status: 'Completed',
-        address: '789 Boulevard, Downtown',
-        deliveryTime: '35 minutes',
-        deliveryPerson: 'Mina Tanaka',
-      },
-      {
-        id: 4,
-        store: 'Burger Shack',
-        orderedAt: 'Sep 15, 2024',
-        items: [
-          { name: 'Cheeseburger', quantity: 2, price: 400 },
-          { name: 'Onion Rings', quantity: 1, price: 100 },
-        ],
-        total: 500,
-        status: 'Completed',
-        address: '101 Park Lane, Uptown',
-        deliveryTime: '25 minutes',
-        deliveryPerson: 'John Doe',
-      },
-      {
-        id: 5,
-        store: 'Pasta Palace',
-        orderedAt: 'Sep 10, 2024',
-        items: [
-          { name: 'Spaghetti Bolognese', quantity: 2, price: 700 },
-          { name: 'Caesar Salad', quantity: 1, price: 250 },
-        ],
-        total: 950,
-        status: 'Completed',
-        address: '202 Avenue Road, Suburbia',
-        deliveryTime: '40 minutes',
-        deliveryPerson: 'Emily Johnson',
-      },
-      {
-        id: 6,
-        store: 'Deli Delight',
-        orderedAt: 'Sep 05, 2024',
-        items: [
-          { name: 'Club Sandwich', quantity: 3, price: 600 },
-          { name: 'Fruit Juice', quantity: 2, price: 200 },
-        ],
-        total: 800,
-        status: 'Completed',
-        address: '303 River Road, Riverside',
-        deliveryTime: '20 minutes',
-        deliveryPerson: 'Alice Smith',
-      },
-  ];
+  const user = useSelector((state) => state.user.user);
+  const isloggedin = useSelector((state) => state.user.isLoggedin);
 
   const [orderitem, setorderitem] = useState([]);
   useEffect(() => {
     const fetchOrder = async () => {
+      if(!isloggedin){
+        return;
+      }
       try {
-        const response = await axios.get('http://localhost:5000/api/orders/');
+        const response = await axios.get(`http://localhost:5000/api/orders/${user._id}`);
         setorderitem(response.data.orders);
+        console.log(response.data);
       } catch (err) {
         console.error(err);
       }
@@ -128,11 +47,24 @@ function ReorderPage() {
     setExpandedOrder(expandedOrder === orderId ? null : orderId); // Toggle between showing and hiding
   };
 
-  const handleReorder = (order) => {
-    alert(`Reordering items from ${order.store}`);
+  const handleReorder = async (order) => {
+    try {
+      order.userid = order.user;
+      order.storeid = order.store;
+      const response = await axios.post('http://localhost:5000/api/orders/add', order);
+      if (response.status === 201) {
+        alert(`Reordering items from ${order.store}`);
+        console.log('Order placed successfully', response.data.order);
+        setorderitem((previtem) => [...previtem, response.data.order]);
+      }
+    } catch (error) {
+      console.error('Error placing the order:', error);
+    }
   };
 
   return (
+  <>
+  {isloggedin ? (
     <Box
       sx={{
         py: 4,
@@ -161,7 +93,7 @@ function ReorderPage() {
             >
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <Typography variant="h6">
-                  Order #{index+1}: {order._id}
+                  OrderId #{index+1}: {order._id}
                 </Typography>
               </Box>
 
@@ -205,7 +137,7 @@ function ReorderPage() {
                       <ListItem key={index} sx={{ padding: '4px 8px' }}>
                         <ListItemText
                           primary={`${item.item_name} (x${item.item_quantity})`}
-                          secondary={`₹500`}
+                          secondary={`₹ ${item.item_price}`}
                           primaryTypographyProps={{ fontSize: '0.9rem' }}
                           secondaryTypographyProps={{ fontSize: '0.8rem' }}
                         />
@@ -214,7 +146,7 @@ function ReorderPage() {
                     <ListItem sx={{ padding: '4px 8px' }}>
                       <ListItemText
                         primary="Total"
-                        secondary={order.total_amount}
+                        secondary={`₹ ${order.total_amount}`}
                         primaryTypographyProps={{ fontSize: '0.9rem' }}
                         secondaryTypographyProps={{ fontSize: '0.8rem' }}
                       />
@@ -236,13 +168,13 @@ function ReorderPage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <AccessTimeIcon sx={{ mr: 1, color: 'primary.main' }} />
                     <Typography variant="body2">
-                      Time taken: {order.deliveryTime}
+                      Time taken: 20 min
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
                     <Typography variant="body2">
-                      Delivery Person: {order.deliveryPerson}
+                      Delivery Person: Rahul Sharma
                     </Typography>
                   </Box>
                 </Box>
@@ -252,6 +184,10 @@ function ReorderPage() {
         </Card>
       ))}
     </Box>
+  ) : (
+    <p style={{color:'red', justifyContent:'center',display: 'flex',fontSize:'1.5rem'}}>You have to Signin First !!</p>
+  )}
+</>
   );
 }
 

@@ -14,7 +14,7 @@ const getAllStore = async (req,res,next) => {
         );
         return next(error);
     }
-        res.json({stores: stores.map(store => store.toObject({ getters: true }))});
+    res.json({stores: stores.map(store => store.toObject({ getters: true }))});
 }
 
 const getStoreById = async (req,res,next) => {
@@ -39,11 +39,12 @@ const addNewStore = async (req,res,next) => {
         new HttpError('Invalid inputs passed, please check your data.', 422)
         );
     }
-    const { userId, store_name, description, store_address, menu} = req.body;
+    const { userId, store_name, description, store_address, menu,store_image} = req.body;
 
     const createdStore = new Store({
         user: new mongoose.Types.ObjectId(userId), // Convert userId to ObjectId
         store_name: store_name,
+        store_image: store_image,
         description: description,
         store_address: {
             house_no: store_address.house_no,
@@ -138,8 +139,88 @@ const deleteStoreById = async(req,res,next) => {
     res.json({message: "deleting done"});
 }
 
+const getStoresByItemCategory = async (req, res, next) => {
+    const category = req.params.item_category; 
+
+    try {
+        const stores = await Store.find({
+            "menu.item_category": category
+        });
+
+        if (stores.length === 0) {
+            return res.status(404).json({ message: 'No stores found for this category.' });
+        }
+
+        return res.status(200).json({ stores });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Fetching stores failed, please try again.' });
+    }
+};
+
+const getNearbyStores = async (req, res) => {
+    const city = req.params.city; 
+    
+    try {
+      let stores;
+  
+      if (!city) {
+        stores = await Store.find(); 
+      } else {
+        stores = await Store.find({ "store_address.city": city });
+      }
+  
+      if (!stores || stores.length === 0) {
+        return res.status(200).json({ message: 'No stores found' });
+      }
+  
+      const itemsList = [];
+      let totalItemsCount = 0; 
+  
+      for (const store of stores) {
+        const shuffledItems = store.menu.sort(() => 0.5 - Math.random()); 
+        const availableSlots = 12 - totalItemsCount; 
+        const selectedItems = shuffledItems.slice(0, availableSlots); 
+  
+        selectedItems.forEach(item => {
+          itemsList.push({
+            store_id: store._id,
+            store_name: store.store_name,
+            store_city: store.store_address.city, 
+            store_state: store.store_address.state,
+            item_photo: item.item_photo, 
+            item_name: item.item_name,
+            item_price: item.item_price,
+            item_quantity: item.item_quantity,
+            item_description: item.item_description,
+            item_type: item.item_type,
+            item_category: item.item_category,
+          });
+        });
+  
+        totalItemsCount += selectedItems.length;
+  
+        if (totalItemsCount >= 12) {
+          break;
+        }
+      }
+  
+      res.status(200).json(itemsList);
+    } catch (err) {
+      console.error('Error fetching stores and items:', err);  
+      res.status(500).json({ message: "Error fetching nearby stores and items", error: err });
+    }
+  };
+  
+  
+  
+  
+
 exports.getAllStore = getAllStore;
 exports.getStoreById = getStoreById;
 exports.addNewStore = addNewStore;
 exports.updateStoreById = updateStoreById;
 exports.deleteStoreById = deleteStoreById;
+
+exports.getStoresByItemCategory = getStoresByItemCategory;
+exports.getNearbyStores = getNearbyStores;

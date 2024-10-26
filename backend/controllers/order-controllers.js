@@ -3,25 +3,13 @@ const mongoose = require('mongoose');
 const HttpError = require('../models/http-error');
 const Order = require('../models/orders');
 
-const getAllOrders = async (req,res,next)=>{
+const getAllOrders = async (req, res, next) => {
 
     const userid = req.params.userid;
     let orders;
-    if(!userid){
+    if (!userid) {
         try {
             orders = await Order.find({}).lean();
-        } catch (err) {
-            const error = new HttpError(
-            'Fetching ordre failed, please try again later.',
-            500
-        );
-        return next(error);
-    }
-        res.json({orders});
-}
-    else{
-        try {
-            orders = await Order.find({user: userid},'-user').lean();
         } catch (err) {
             const error = new HttpError(
                 'Fetching ordre failed, please try again later.',
@@ -29,10 +17,22 @@ const getAllOrders = async (req,res,next)=>{
             );
             return next(error);
         }
-        
-        res.json({orders});
+        res.json({ orders });
     }
-    
+    else {
+        try {
+            orders = await Order.find({ user: userid }).lean();
+        } catch (err) {
+            const error = new HttpError(
+                'Fetching ordre failed, please try again later.',
+                500
+            );
+            return next(error);
+        }
+
+        res.json({ orders });
+    }
+
 }
 
 const getOrderById = async (req,res,next)=>{
@@ -58,13 +58,15 @@ const addNewOrder =  async (req,res,next) =>{
         );
     }
 
-    const { userid,storeid,orders,address,total_amount } = req.body;
+    const { userid,storeid,orders,address,total_amount,progress,currentStep } = req.body;
     const createdOrder = new Order({
         user: new mongoose.Types.ObjectId(userid),
         store: new mongoose.Types.ObjectId(storeid),
         orders: orders,
         address: address,
         total_amount :total_amount,
+        progress: progress,
+        currentStep: currentStep,
     });
     try {
         await createdOrder.save();
@@ -75,7 +77,7 @@ const addNewOrder =  async (req,res,next) =>{
         );
         return next(error);
     }
-    res.status(201).json({ order: createdOrder.toObject({ getters: true }) });
+    res.status(201).json({ order: createdOrder.toObject({ getters: true }) });
 
 }
 

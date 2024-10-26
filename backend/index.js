@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require('cors');
+require('dotenv').config(); 
 
 const usersRoutes = require("./routes/users-routes");
 const cartRoutes = require("./routes/cart-routes");
@@ -23,12 +24,12 @@ app.use((req,res)=>{
 
 mongoose
   .connect(
-    "mongodb+srv://Divyang:Divyang%407725@hungryhive.ghx0p.mongodb.net/Hungryhive?retryWrites=true&w=majority" 
+    process.env.MONGO_URL 
   )
   .then(() => {
     console.log("MongoDB Database connected Successfully.");
-    app.listen(5000,()=>{
-        console.log("Backend Running at 5000 port");
+    app.listen(process.env.PORT,()=>{
+        console.log(`Backend Running at ${process.env.PORT} port`);
     });
   })
   .catch((err) => {

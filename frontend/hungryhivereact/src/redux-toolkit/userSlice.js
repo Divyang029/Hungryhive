@@ -4,20 +4,23 @@ const userSlice = createSlice({
      name: 'user',
      initialState: {
           isLoggedin: false,
-          userid: "",
+          user: {},
      },
      reducers: {
           setlogin: (state, action) => {
                state.isLoggedin = true;
-               state.userid = action.payload;
+               state.user = action.payload;
           },
           setlogout: (state,action) => {
                state.isLoggedin = false;
-               state.userid = "";
+               state.user = {};
+          },
+          setuser: (state,action) => {
+               state.user = action.payload;
           }
      }
 });
 
-export const { setlogin, setlogout} = userSlice.actions;
+export const { setlogin, setlogout, setuser} = userSlice.actions;
 export default userSlice.reducer;
 

@@ -5,19 +5,14 @@ const Schema = mongoose.Schema;
 
 
 const storeSchema = new Schema({
-    user: { type: mongoose.Types.ObjectId, required: true, ref: 'User'},
     store_name: { type: String, required: true},
     description: { type: String},
+    store_image: { type: String },
     store_address: {
         house_no: { type: Number, required: true },
         street: { type: String},
         area: { type: String, required: true},
-        pincode: { type: Number, required: true, validate: {
-            validator: function(value) {
-              return /^[0-9]{6}$/.test(value);  // Ensures exactly 6 digits
-            },
-            message: 'Pincode must be exactly 6 digits'
-        }},
+        pincode: { type: Number, required: true },
         city: { type: String, required: true},
         state: { type: String, required: true },
         country: { type: String, required: true },
@@ -34,7 +29,6 @@ const storeSchema = new Schema({
             item_category: { type: String, required: true}
         }
     ]
-
 });
 
 storeSchema.plugin(uniqueValidator);

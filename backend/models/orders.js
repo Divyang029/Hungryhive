@@ -11,12 +11,16 @@ const ordersSchema = new Schema({
         {
             item_name: { type: String, required: true},
             item_quantity: { type: Number, required: true},
-            item_category: { type: String, required: true}
+            item_category: { type: String, required: true},
+            item_price: {type: Number,required: true},
         }
     ],
     orderedAt:{type: Date, default:Date.now},
     address:{ type: String, required: true},
     total_amount: { type: Number},
+    progress: { type: [String], default: ['Order Confirmed', 'Baking', 'Out for Delivery', 'Delivered'] },
+    // Current step in the progress array
+    currentStep: { type: Number, default: 0 },
     // payment_type: { type: String},
 
 });
