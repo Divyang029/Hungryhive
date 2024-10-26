@@ -131,19 +131,5 @@ HungryHive is a full-stack food ordering system with separate frontend and backe
 
 ---
 
-## Setup Instructions
-1. **Environment Variables**:
-   Create a `.env` file in the `backend` directory with the following:
-    ```plaintext
-    MONGO_URI=<Your MongoDB URI>
-    GOOGLE_CLIENT_ID=<Google Client ID>
-    GOOGLE_CLIENT_SECRET=<Google Client Secret>
-    EMAIL_SERVICE_API_KEY=<Your OTP email service API key>
-    ```
-2. **Running the Application**:
-   - Start the backend server first, followed by the frontend.
-
----
-
 ## Contributing
 Feel free to submit issues or pull requests to help improve this project!
