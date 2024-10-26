@@ -14,8 +14,6 @@ HungryHive is a full-stack food ordering system with separate frontend and backe
   - [Order Page](#order-page)
   - [Reorder Page](#reorder-page)
   - [Profile Page](#profile-page)
-- [Setup Instructions](#setup-instructions)
-- [License](#license)
 
 ---
 
