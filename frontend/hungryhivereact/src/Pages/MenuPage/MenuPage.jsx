@@ -23,6 +23,7 @@ import Drawer from '@mui/material/Drawer';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
+import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
 // Fetch food image from external API
 const fetchFoodImage = async (foodType) => {
@@ -153,11 +154,14 @@ const MenuPage = () => {
     if (search && search.trim() !== '') {
       filtered = filtered.filter(store =>
         store.store_name.toLowerCase().includes(search.toLowerCase()) ||
-        store.store_city.toLowerCase().includes(search.toLowerCase()) ||
-        store.store_state.toLowerCase().includes(search.toLowerCase()) ||
+        store.store_address.city.toLowerCase().includes(search.toLowerCase()) ||
+        store.store_address.state.toLowerCase().includes(search.toLowerCase()) ||
+        store.store_address.street.toLowerCase().includes(search.toLowerCase()) ||
+        store.store_address.area.toLowerCase().includes(search.toLowerCase()) ||
+        store.store_address.country.toLowerCase().includes(search.toLowerCase()) ||
         store.menu.some(item =>
           item.item_name.toLowerCase().includes(search.toLowerCase()) ||
-          item.item_description.toLowerCase().includes(search.toLowerCase())
+          item.item_type.toLowerCase().includes(search.toLowerCase())
         )
       );
     }
@@ -413,7 +417,7 @@ const MenuPage = () => {
         ))}
       </Box>
 
-      {selectedFood && filteredStoreData.length > 0 && (
+      {selectedFood && (
         <Box sx={{ mt: 4, textAlign: 'center', width: '80%' }}>
           <Typography variant="h5" mb={2}>
             Stores selling {selectedFood}
@@ -424,7 +428,7 @@ const MenuPage = () => {
             <TextField
               fullWidth
               variant="outlined"
-              placeholder={`Search ${selectedFood} stores...`}
+              placeholder={`Search ${selectedFood} stores or category...`}
               value={searchTerm}
               onChange={handleSearchChange}
               sx={{ maxWidth: '600px' }}
@@ -446,55 +450,92 @@ const MenuPage = () => {
             </Button>
           </Box>
 
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2, mb: 2 }}>
-            {filteredStoreData.length} {filteredStoreData.length === 1 ? 'store' : 'stores'} found
-          </Typography>
+          {filteredStoreData.length > 0 ? (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2, mb: 2 }}>
+                {filteredStoreData.length} {filteredStoreData.length === 1 ? 'store' : 'stores'} found
+              </Typography>
 
-          <Grid container spacing={3}>
-            {filteredStoreData.map((store, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                <Card sx={{ maxWidth: 345 }}>
-                  <CardMedia
-                    component="img"
-                    height="180"
-                    image={store.store_image || 'https://via.placeholder.com/300'}
-                    alt={store.store_name}
-                  />
-                  <CardContent>
-                    <Typography gutterBottom variant="h6" component="div">
-                      {store.store_name}
-                    </Typography>
-                    {store.menu && store.menu.filter(item => item.item_category === selectedFood).map(item => (
-                      <Box key={item.item_name} sx={{ mt: 1 }}>
-                        <Typography variant="body2">{item.item_name}</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 , mt:1}}>
-                        ₹ {item.item_price}
+              <Grid container spacing={3}>
+                {filteredStoreData.map((store, index) => (
+                  <Grid item xs={12} sm={6} md={4} key={index}>
+                    <Card sx={{ maxWidth: 345 }}>
+                      <CardMedia
+                        component="img"
+                        height="180"
+                        image={store.store_image || 'https://via.placeholder.com/300'}
+                        alt={store.store_name}
+                      />
+                      <CardContent>
+                        <Typography gutterBottom variant="h6" component="div">
+                          {store.store_name}
                         </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2 , mb:0.5}}>
-                          <Button
-                            variant="outlined"
-                            onClick={() => handleDecrement(store, item)}
-                            disabled={storeQuantities[store.store_name] === 0}
-                          >
-                            -
-                          </Button>
-                          <Typography sx={{ mx: 2 }}>
-                            {storeQuantities[store.store_name]?.[item.item_name] || 0}
-                          </Typography>
-                          <Button
-                            variant="outlined"
-                            onClick={() => handleIncrement(store, item)}
-                          >
-                            +
-                          </Button>
-                        </Box>
-                      </Box>
-                    ))}
-                  </CardContent>
-                </Card>
+                        {store.menu && store.menu.filter(item => item.item_category === selectedFood).map(item => (
+                          <Box key={item.item_name} sx={{ mt: 1 }}>
+                            <Typography variant="body2">{item.item_name}</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 , mt:1}}>
+                            ₹ {item.item_price}
+                            </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2 , mb:0.5}}>
+                              <Button
+                                variant="outlined"
+                                onClick={() => handleDecrement(store, item)}
+                                disabled={storeQuantities[store.store_name] === 0}
+                              >
+                                -
+                              </Button>
+                              <Typography sx={{ mx: 2 }}>
+                                {storeQuantities[store.store_name]?.[item.item_name] || 0}
+                              </Typography>
+                              <Button
+                                variant="outlined"
+                                onClick={() => handleIncrement(store, item)}
+                              >
+                                +
+                              </Button>
+                            </Box>
+                          </Box>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
+            </>
+          ) : (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                py: 5,
+                px: 2,
+                mt: 2,
+                backgroundColor: 'background.paper',
+                borderRadius: 2,
+                boxShadow: 1
+              }}
+            >
+              <SentimentDissatisfiedIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                No stores or food item found
+              </Typography>
+              <Typography variant="body1" color="text.secondary" align="center">
+                We couldn't find any stores that match your search criteria for {selectedFood}.
+              </Typography>
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                Try adjusting your filters or search terms.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={resetFilters}
+                sx={{ mt: 3 }}
+              >
+                Clear Filters
+              </Button>
+            </Box>
+          )}
         </Box>
       )}
 

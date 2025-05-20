@@ -216,7 +216,10 @@ function HomePage() {
         item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.item_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.store_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.item_category.toLowerCase().includes(searchTerm.toLowerCase())
+        item.item_category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.item_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.store_city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.store_state.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
